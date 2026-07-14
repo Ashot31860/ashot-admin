@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration des clés AshotBots</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body {
+            background: #0b0e12;
+            color: #e2e8f0;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #141a22;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid #2a3a4a;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        h1 {
+            font-weight: 700;
+            font-size: 26px;
+            margin: 0 0 6px 0;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #7a8a9a;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 120px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #7a8a9a;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group input {
+            width: 100%;
+            background: #1a222a;
+            border: 1px solid #2a3a4a;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .form-group input:focus {
+            border-color: #7c3aed;
+        }
+        .btn {
+            background: #7c3aed;
+            border: none;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .btn:hover {
+            background: #6d28d9;
+            transform: scale(1.02);
+        }
+        .btn-danger {
+            background: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-copy {
+            background: #2a3a4a;
+            padding: 4px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+        .btn-copy:hover {
+            background: #3a4a5a;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 8px;
+            color: #7a8a9a;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2a3a4a;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #1a222a;
+            vertical-align: middle;
+        }
+        .key-code {
+            font-family: 'Courier New', monospace;
+            background: #1a222a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .status-valid {
+            color: #34d399;
+        }
+        .status-expired {
+            color: #ef4444;
+        }
+        .empty-msg {
+            color: #5a6a7a;
+            text-align: center;
+            padding: 30px 0;
+            font-size: 15px;
+        }
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .footer {
+            margin-top: 24px;
+            font-size: 12px;
+            color: #5a6a7a;
+            border-top: 1px solid #1a222a;
+            padding-top: 16px;
+            text-align: center;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #141a22;
+            border: 1px solid #34d399;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✦ Gestion des clés</h1>
+    <div class="subtitle">Générez et administrez vos clés pour AshotBots</div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Nom de la clé</label>
+            <input type="text" id="keyName" placeholder="Ex: Client1" value="Demo">
+        </div>
+        <div class="form-group">
+            <label>Durée (heures)</label>
+            <input type="number" id="keyDuration" value="2" min="0.5" step="0.5">
+        </div>
+        <div class="form-group" style="flex: 0 0 auto;">
+            <button class="btn" id="generateBtn">Générer la clé</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Clé</th>
+                    <th>Nom</th>
+                    <th>Durée</th>
+                    <th>Temps restant</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="keysTableBody">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Les clés sont stockées dans votre navigateur (localStorage). Pour distribuer une clé, copiez-la et donnez-la à l'utilisateur.
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    (function() {
+        const STORAGE_KEY = 'ashot_license_keys';
+
+        function getKeys() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            } catch(e) {
+                return {};
+            }
+        }
+
+        function saveKeys(keys) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+        }
+
+        function generateKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let key = '';
+            for (let i = 0; i < 5; i++) {
+                key += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return key;
+        }
+
+        function createKey(name, durationHours) {
+            const keys = getKeys();
+            let key = generateKey();
+            while (keys[key]) {
+                key = generateKey();
+            }
+            const now = Date.now();
+            keys[key] = {
+                name: name || 'Clé',
+                durationHours: durationHours || 1,
+                timeLeftSeconds: durationHours * 3600,
+                createdAt: now,
+                expiresAt: now + durationHours * 3600 * 1000,
+                active: true
+            };
+            saveKeys(keys);
+            return key;
+        }
+
+        function deleteKey(key) {
+            const keys = getKeys();
+            if (keys[key]) {
+                delete keys[key];
+                saveKeys(keys);
+                return true;
+            }
+            return false;
+        }
+
+        function getTimeLeft(keyData) {
+            const now = Date.now();
+            const elapsed = (now - keyData.createdAt) / 1000;
+            const remaining = Math.max(0, keyData.durationHours * 3600 - elapsed);
+            return remaining;
+        }
+
+        function formatTime(seconds) {
+            if (seconds <= 0) return 'Expirée';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function renderTable() {
+            const keys = getKeys();
+            const tbody = document.getElementById('keysTableBody');
+            tbody.innerHTML = '';
+
+            const entries = Object.entries(keys);
+            if (entries.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">Aucune clé générée.</td></tr>`;
+                return;
+            }
+
+            for (const [key, data] of entries) {
+                const remaining = getTimeLeft(data);
+                const isExpired = remaining <= 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="key-code">${key}</span></td>
+                    <td>${data.name}</td>
+                    <td>${data.durationHours}h</td>
+                    <td>${formatTime(remaining)}</td>
+                    <td><span class="${isExpired ? 'status-expired' : 'status-valid'}">${isExpired ? 'Expirée' : 'Valide'}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-copy" data-key="${key}">Copier</button>
+                            <button class="btn btn-danger" data-key="${key}" style="padding:4px 8px;font-size:12px;">Supprimer</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            // Attach events
+            document.querySelectorAll('.btn-copy').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const key = this.dataset.key;
+                    navigator.clipboard.writeText(key).then(() => {
+                        showToast('✅ Clé copiée : ' + key);
+                    }).catch(() => {
+                        // fallback
+                        const textarea = document.createElement('textarea');
+                        textarea.value = key;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        showToast('✅ Clé copiée : ' + key);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.btn-danger').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const key = this.dataset.key;
+                    if (confirm(`Supprimer la clé ${key} ?`)) {
+                        deleteKey(key);
+                        renderTable();
+                        showToast('🗑️ Clé supprimée');
+                    }
+                });
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const nameInput = document.getElementById('keyName');
+            const durationInput = document.getElementById('keyDuration');
+            const name = nameInput.value.trim() || 'Clé';
+            const duration = parseFloat(durationInput.value);
+            if (isNaN(duration) || duration <= 0) {
+                alert('Veuillez entrer une durée valide (en heures).');
+                return;
+            }
+            const newKey = createKey(name, duration);
+            renderTable();
+            showToast(`✅ Nouvelle clé générée : ${newKey}`);
+            // Copier automatiquement ?
+            navigator.clipboard.writeText(newKey).catch(() => {});
+        });
+
+        // Initial render
+        renderTable();
+
+        // Auto-refresh every 10s to update time left
+        setInterval(renderTable, 10000);
+    })();
+</script>
+
+</body>
+</html>
